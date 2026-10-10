@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-purple: #500840;
+  --color-brand-yellow: #F9A809;
+  --color-brand-blue: #212E50;
+  --font-sans: "Comic Sans MS", cursive, system-ui, sans-serif;
+  --font-heading: "Comic Sans MS", cursive, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply antialiased text-brand-blue bg-white;
+    font-family: var(--font-sans);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    @apply text-brand-purple;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  /* Food Slider - continuous auto-scroll */
+  .food-slider {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .food-slider-track {
+    display: flex;
+    width: fit-content;
+    animation: scroll 30s linear infinite;
+  }
+
+  .food-slider-track.paused {
+    animation-play-state: paused;
+  }
+
+  .food-slider:hover .food-slider-track {
+    animation-play-state: paused;
+  }
+
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+}
