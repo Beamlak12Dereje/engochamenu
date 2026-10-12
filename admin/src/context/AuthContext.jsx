@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { login as loginApi } from '../api/authApi';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext();
 
@@ -16,46 +17,62 @@ export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore token on page load
+  // Restore session on page load by validating against Supabase
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    const savedAdmin = localStorage.getItem('admin');
-    
-    // Clear old mock tokens - they start with "mock-jwt-token"
-    if (savedToken && savedToken.startsWith('mock-jwt-token')) {
-      console.log('Clearing old mock token...');
-      localStorage.removeItem('token');
-      localStorage.removeItem('admin');
-      setLoading(false);
-      return;
-    }
-    
-    if (savedToken && savedAdmin) {
-      // Validate token format (basic check)
+    const restoreSession = async () => {
       try {
-        JSON.parse(savedAdmin);
-        setToken(savedToken);
-        setAdmin(JSON.parse(savedAdmin));
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session && session.user) {
+          // Valid session exists on Supabase side
+          setToken(session.access_token);
+          setAdmin({
+            name: session.user.email.split('@')[0],
+            email: session.user.email,
+          });
+        } else {
+          // No valid session — clear any stale local data
+          localStorage.removeItem('token');
+          localStorage.removeItem('admin');
+          setToken(null);
+          setAdmin(null);
+        }
       } catch (error) {
-        // Invalid token/admin data, clear it
-        console.log('Invalid token data, clearing...');
+        console.log('Session validation failed, clearing...', error);
         localStorage.removeItem('token');
         localStorage.removeItem('admin');
+        setToken(null);
+        setAdmin(null);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    restoreSession();
+
+    // Listen for session changes (e.g. token expiry, sign-out from another tab)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('admin');
+        setToken(null);
+        setAdmin(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email, password) => {
     try {
       const response = await loginApi(email, password);
       const { token: newToken, admin: adminData } = response.data;
-      
+
       setToken(newToken);
       setAdmin(adminData);
       localStorage.setItem('token', newToken);
       localStorage.setItem('admin', JSON.stringify(adminData));
-      
+
       return { success: true };
     } catch (error) {
       return {
@@ -65,11 +82,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setToken(null);
-    setAdmin(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('admin');
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.log('Sign out error:', error);
+    } finally {
+      setToken(null);
+      setAdmin(null);
+      localStorage.removeItem('token');
+      localStorage.removeItem('admin');
+    }
   };
 
   return (
