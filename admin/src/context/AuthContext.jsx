@@ -21,9 +21,27 @@ export const AuthProvider = ({ children }) => {
     const savedToken = localStorage.getItem('token');
     const savedAdmin = localStorage.getItem('admin');
     
+    // Clear old mock tokens - they start with "mock-jwt-token"
+    if (savedToken && savedToken.startsWith('mock-jwt-token')) {
+      console.log('Clearing old mock token...');
+      localStorage.removeItem('token');
+      localStorage.removeItem('admin');
+      setLoading(false);
+      return;
+    }
+    
     if (savedToken && savedAdmin) {
-      setToken(savedToken);
-      setAdmin(JSON.parse(savedAdmin));
+      // Validate token format (basic check)
+      try {
+        JSON.parse(savedAdmin);
+        setToken(savedToken);
+        setAdmin(JSON.parse(savedAdmin));
+      } catch (error) {
+        // Invalid token/admin data, clear it
+        console.log('Invalid token data, clearing...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('admin');
+      }
     }
     setLoading(false);
   }, []);

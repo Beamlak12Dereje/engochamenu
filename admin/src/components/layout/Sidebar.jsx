@@ -9,6 +9,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const menuItems = [
     { path: '/items', label: 'Items' },
     { path: '/categories', label: 'Categories' },
+    { path: '/suggestions', label: 'Suggestions' },
   ];
 
   const isActive = (path) => location.pathname === path;

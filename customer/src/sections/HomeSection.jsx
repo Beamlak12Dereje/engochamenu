@@ -18,7 +18,7 @@ const HomeSection = ({ searchText, onSearch, featuredItems, loading }) => {
         
         {/* Food Slider - full width, no padding */}
         {!loading && (
-          <div className="w-full mt-8">
+          <div className="w-full mt-4">
             <FoodSlider items={featuredItems} />
           </div>
         )}

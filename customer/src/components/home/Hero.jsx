@@ -12,12 +12,12 @@ const Hero = () => {
         <img 
           src="/images/logo.png" 
           alt="Engocha" 
-          className="w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 object-contain drop-shadow-2xl animate-fade-in-up"
+          className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 object-contain drop-shadow-2xl animate-fade-in-up"
         />
       </div>
 
       {/* Tagline */}
-      <p className="text-xs md:text-sm text-brand-blue font-semibold tracking-[0.4em] md:tracking-[0.5em] uppercase mb-6 md:mb-8 animate-fade-in-up" 
+      <p className="text-xs md:text-sm text-brand-blue font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase mb-6 md:mb-8 animate-fade-in-up" 
          style={{ animationDelay: '150ms' }}>
         Where Real Taste Begins
       </p>

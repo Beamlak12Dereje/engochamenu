@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Menu, X, Send, Phone } from 'lucide-react';
+import LanguageSelector from './LanguageSelector';
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [language, setLanguage] = useState('ethiopian');
   const [contactDevOpen, setContactDevOpen] = useState(false);
 
   const navLinks = [
@@ -16,7 +16,7 @@ const Navbar = () => {
     { 
       name: 'Telegram', 
       icon: <Send size={18} />, 
-      url: 'https://t.me/yourusername' 
+      url: 'https://t.me/neshray_23' 
     },
     { 
       name: 'Instagram', 
@@ -27,12 +27,12 @@ const Navbar = () => {
           <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
         </svg>
       ), 
-      url: 'https://instagram.com/yourusername' 
+      url: 'https://instagram.com/neshray_23' 
     },
     { 
       name: 'WhatsApp', 
       icon: <Phone size={18} />, 
-      url: 'https://wa.me/yourphonenumber' 
+      url: 'https://wa.me/+251717535014' 
     },
   ];
 
@@ -57,18 +57,7 @@ const Navbar = () => {
             {/* Desktop Navigation - RIGHT */}
             <div className="hidden md:flex items-center gap-6 relative">
               {/* Language Selector */}
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="bg-white/50 border border-brand-blue/20 rounded-full px-4 py-2 pr-8 text-base font-semibold text-brand-blue hover:border-brand-purple focus:outline-none focus:border-brand-purple transition-colors cursor-pointer appearance-none bg-no-repeat bg-right"
-                style={{ 
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23212E50' d='M4 6l4 4 4-4z'/%3E%3C/svg%3E")`,
-                  backgroundPosition: 'right 0.5rem center'
-                }}
-              >
-                <option value="ethiopian">Ethiopian</option>
-                <option value="foreigner">Foreigner</option>
-              </select>
+              <LanguageSelector />
 
               {navLinks.map((link) => (
                 <a
@@ -117,18 +106,7 @@ const Navbar = () => {
             {/* Mobile: Language Selector + Menu Button */}
             <div className="md:hidden flex items-center gap-3">
               {/* Language Selector - Mobile */}
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="bg-white/50 border border-brand-blue/20 rounded-full px-3 py-1.5 pr-7 text-sm font-semibold text-brand-blue focus:outline-none focus:border-brand-purple transition-colors cursor-pointer appearance-none bg-no-repeat bg-right"
-                style={{ 
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%23212E50' d='M3 5l4 4 4-4z'/%3E%3C/svg%3E")`,
-                  backgroundPosition: 'right 0.4rem center'
-                }}
-              >
-                <option value="ethiopian">Ethiopian</option>
-                <option value="foreigner">Foreigner</option>
-              </select>
+              <LanguageSelector isMobile />
 
               {/* Mobile Menu Button */}
               <button

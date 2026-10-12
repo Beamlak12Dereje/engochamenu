@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getCategories, getItems, getFeaturedMenuItems } from '../api/menuApi';
-import { getCategoryName } from '../data/mockMenu';
 
 /**
  * Custom hook to manage menu data, search, and filtering
@@ -46,7 +45,36 @@ export const useMenu = () => {
     };
 
     loadData();
+    
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      // Silent refresh (no loading state)
+      const silentRefresh = async () => {
+        try {
+          const [categoriesData, itemsData, featuredData] = await Promise.all([
+            getCategories(),
+            getItems(),
+            getFeaturedMenuItems(),
+          ]);
+          
+          setCategories(categoriesData);
+          setItems(itemsData);
+          setFeaturedItems(featuredData);
+        } catch (err) {
+          console.error('Silent refresh error:', err);
+        }
+      };
+      silentRefresh();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
+
+  // Helper function to get category name by ID
+  const getCategoryName = (categoryId) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : 'Unknown';
+  };
 
   // Filter and search items
   const filteredItems = useMemo(() => {
@@ -85,7 +113,7 @@ export const useMenu = () => {
     });
     
     return Object.values(grouped);
-  }, [filteredItems]);
+  }, [filteredItems, categories]);
 
   // Handle search - sets search text and scrolls to menu
   const handleSearch = (text) => {

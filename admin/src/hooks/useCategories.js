@@ -1,35 +1,24 @@
 import { useState, useEffect } from 'react';
 import * as categoryApi from '../api/categoryApi';
 import { useToast } from '../context/ToastContext';
+import { useData } from '../context/DataContext';
 
 export const useCategories = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { categories: cachedCategories, setCategories: setCachedCategories, loading: globalLoading } = useData();
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { showToast } = useToast();
-
-  const loadCategories = async () => {
-    try {
-      setLoading(true);
-      const response = await categoryApi.getCategories();
-      setCategories(response.data);
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load categories');
-      showToast('Failed to load categories', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const addCategory = async (categoryData) => {
     try {
       const response = await categoryApi.createCategory(categoryData);
-      setCategories([...categories, response.data]);
+      setCachedCategories([...cachedCategories, response.data]);
       showToast('Category added successfully', 'success');
       return { success: true };
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to add category', 'error');
+      console.error('Category add error:', err);
+      const errorMessage = err.message || err.response?.data?.message || 'Failed to add category';
+      showToast(errorMessage, 'error');
       return { success: false };
     }
   };
@@ -37,7 +26,7 @@ export const useCategories = () => {
   const updateCategory = async (id, categoryData) => {
     try {
       const response = await categoryApi.updateCategory(id, categoryData);
-      setCategories(categories.map(cat => cat.id === id ? response.data : cat));
+      setCachedCategories(cachedCategories.map(cat => cat.id === id ? response.data : cat));
       showToast('Category updated successfully', 'success');
       return { success: true };
     } catch (err) {
@@ -49,7 +38,7 @@ export const useCategories = () => {
   const removeCategory = async (id) => {
     try {
       await categoryApi.deleteCategory(id);
-      setCategories(categories.filter(cat => cat.id !== id));
+      setCachedCategories(cachedCategories.filter(cat => cat.id !== id));
       showToast('Category deleted successfully', 'success');
       return { success: true };
     } catch (err) {
@@ -58,17 +47,12 @@ export const useCategories = () => {
     }
   };
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
   return {
-    categories,
-    loading,
+    categories: cachedCategories,
+    loading: globalLoading,
     error,
     addCategory,
     updateCategory,
     removeCategory,
-    reload: loadCategories,
   };
 };

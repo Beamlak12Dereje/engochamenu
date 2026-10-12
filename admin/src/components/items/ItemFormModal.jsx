@@ -19,8 +19,8 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
       setFormData({
         name: item.name,
         description: item.description,
-        price_ethiopian: item.price_ethiopian,
-        price_foreigner: item.price_foreigner,
+        price_ethiopian: item.price_ethiopian || item.price_local || '',
+        price_foreigner: item.price_foreigner || item.price_foreign || '',
         category_id: item.category_id,
         image_url: item.image_url,
         is_popular: item.is_popular,
@@ -71,15 +71,21 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
       return;
     }
 
-    const result = await onSubmit({
-      ...formData,
-      price_ethiopian: Number(formData.price_ethiopian),
-      price_foreigner: Number(formData.price_foreigner),
-      category_id: Number(formData.category_id),
-    });
-    
-    if (result.success) {
-      onClose();
+    try {
+      const result = await onSubmit({
+        ...formData,
+        price_ethiopian: Number(formData.price_ethiopian),
+        price_foreigner: Number(formData.price_foreigner),
+        category_id: Number(formData.category_id),
+      });
+      
+      if (result.success) {
+        onClose();
+      } else {
+        console.error('Form submission failed');
+      }
+    } catch (error) {
+      console.error('Form error:', error);
     }
   };
 

@@ -27,23 +27,22 @@ const MenuSection = ({
   };
 
   return (
-    <section id="menu" className="min-h-screen py-0 bg-brand-purple">
-      {/* Sticky Header with count and filter */}
-      <div className="sticky top-[72.93px] z-40 bg-brand-purple text-white py-6 px-4 border-b border-white/10">
-        <div className="container mx-auto max-w-7xl flex justify-between items-center">
-          <h2 className="text-lg md:text-xl font-semibold">
-            {totalItems} delicious items available
-          </h2>
-          <button 
-            className="flex items-center gap-2 rounded-lg px-4 py-2 hover:bg-white/10 transition-colors"
-            style={{ border: '1px solid #FFF9E6' }}
-            onClick={() => setFilterOpen(!filterOpen)}
-          >
-            <Filter size={18} />
-            <span className="text-sm">Filter</span>
-          </button>
-        </div>
+    <section id="menu" className="min-h-screen pt-2 bg-brand-purple/95 relative">
+      {/* Item Count Text */}
+      <div className="container mx-auto max-w-7xl px-4 mb-3">
+        <h2 className="text-white text-sm md:text-base font-normal text-center">
+          {totalItems} delicious items available
+        </h2>
       </div>
+
+      {/* Sticky Floating Filter Button - only visible in menu section */}
+      <button 
+        className="sticky top-24 float-right mr-4 md:mr-8 z-40 flex items-center gap-1.5 rounded-lg px-3 py-2 hover:bg-brand-yellow/90 transition-colors border border-white/30 bg-transparent text-brand-yellow font-normal shadow-lg mb-4"
+        onClick={() => setFilterOpen(!filterOpen)}
+      >
+        <Filter size={16} />
+        <span className="text-xs">▼</span>
+      </button>
 
       {/* Filter Dropdown Menu */}
       {filterOpen && (
@@ -63,29 +62,61 @@ const MenuSection = ({
               </button>
             </div>
 
-            {/* Categories List */}
+            {/* Content */}
             <div className="p-4">
-              <h4 className="text-sm font-semibold text-white/70 mb-3">Collections</h4>
-              <div className="flex flex-wrap gap-2 mb-6">
-                <button
-                  onClick={() => {
-                    window.location.hash = 'menu';
-                    setFilterOpen(false);
-                  }}
-                  className="px-4 py-2 rounded-full text-brand-purple font-semibold text-sm hover:opacity-80 transition-colors"
-                  style={{ backgroundColor: '#FFF9E6' }}
-                >
-                  📋 All
-                </button>
-                {categories.map((category) => (
+              {/* All Categories Section */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <h4 className="text-base font-bold text-white">All Categories</h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
                   <button
-                    key={category.id}
-                    onClick={() => scrollToCategory(category.name)}
-                    className="px-4 py-2 rounded-full bg-white/10 text-white font-semibold text-sm hover:bg-white/20 border border-white/20 transition-colors"
+                    onClick={() => {
+                      window.location.hash = 'menu';
+                      setFilterOpen(false);
+                    }}
+                    className="px-4 py-2 rounded-full font-semibold text-sm hover:opacity-80 transition-colors"
+                    style={{ backgroundColor: '#FFF9E6', color: '#212E50' }}
                   >
-                    {category.name}
+                    All
                   </button>
-                ))}
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => scrollToCategory(category.name)}
+                      className="px-4 py-2 rounded-full bg-white/10 text-white font-semibold text-sm hover:bg-white/20 border border-white/20 transition-colors capitalize"
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Popular Items Section */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <h4 className="text-base font-bold text-white">Popular Items</h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {itemsByCategory
+                    .flatMap(cat => cat.items)
+                    .filter(item => item.is_popular)
+                    .map((item) => (
+                      <button
+                        key={`popular-${item.id}`}
+                        onClick={() => {
+                          const categoryName = categories.find(cat => cat.id === item.category_id)?.name;
+                          if (categoryName) scrollToCategory(categoryName);
+                        }}
+                        className="px-4 py-2 rounded-full bg-white/10 text-white font-semibold text-sm hover:bg-white/20 border border-white/20 transition-colors capitalize"
+                      >
+                        {item.name}
+                      </button>
+                    ))}
+                  {itemsByCategory.flatMap(cat => cat.items).filter(item => item.is_popular).length === 0 && (
+                    <p className="text-white/60 text-sm">No popular items yet</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -133,22 +164,22 @@ const MenuSection = ({
         {/* Collections/Categories Filter Section at Bottom */}
         {!loading && !error && categories.length > 0 && (
           <div className="mt-16 pt-8 border-t border-white/20">
-            {/* Collections */}
+            {/* All Categories */}
             <div className="mb-8">
-              <h3 className="text-lg font-semibold text-white/70 mb-4">📋 All Collections</h3>
+              <h3 className="text-lg font-semibold text-white/70 mb-4">All Categories</h3>
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => window.location.hash = 'menu'}
                   className="px-6 py-2.5 rounded-full text-brand-purple font-semibold text-sm hover:opacity-80 transition-colors"
                   style={{ backgroundColor: '#FFF9E6' }}
                 >
-                  📋 All Collections
+                  All
                 </button>
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => scrollToCategory(category.name)}
-                    className="px-6 py-2.5 rounded-full bg-white/10 text-white font-semibold text-sm hover:bg-white/20 border border-white/20 transition-colors"
+                    className="px-6 py-2.5 rounded-full bg-white/10 text-white font-semibold text-sm hover:bg-white/20 border border-white/20 transition-colors capitalize"
                   >
                     {category.name}
                   </button>
@@ -156,26 +187,28 @@ const MenuSection = ({
               </div>
             </div>
 
-            {/* Categories (All Items) */}
+            {/* Popular Items */}
             <div>
-              <h3 className="text-lg font-semibold text-white/70 mb-4">📂 All Items</h3>
+              <h3 className="text-lg font-semibold text-white/70 mb-4">Popular Items</h3>
               <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => window.location.hash = 'menu'}
-                  className="px-6 py-2.5 rounded-full text-brand-purple font-semibold text-sm hover:opacity-80 transition-colors"
-                  style={{ backgroundColor: '#FFF9E6' }}
-                >
-                  📂 All Items
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={`cat-${category.id}`}
-                    onClick={() => scrollToCategory(category.name)}
-                    className="px-6 py-2.5 rounded-full bg-white/10 text-white font-semibold text-sm hover:bg-white/20 border border-white/20 transition-colors"
-                  >
-                    {category.name}
-                  </button>
-                ))}
+                {itemsByCategory
+                  .flatMap(cat => cat.items)
+                  .filter(item => item.is_popular)
+                  .map((item) => (
+                    <button
+                      key={`bottom-popular-${item.id}`}
+                      onClick={() => {
+                        const categoryName = categories.find(cat => cat.id === item.category_id)?.name;
+                        if (categoryName) scrollToCategory(categoryName);
+                      }}
+                      className="px-6 py-2.5 rounded-full bg-white/10 text-white font-semibold text-sm hover:bg-white/20 border border-white/20 transition-colors capitalize"
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+                {itemsByCategory.flatMap(cat => cat.items).filter(item => item.is_popular).length === 0 && (
+                  <p className="text-white/60 text-sm">No popular items yet</p>
+                )}
               </div>
             </div>
           </div>

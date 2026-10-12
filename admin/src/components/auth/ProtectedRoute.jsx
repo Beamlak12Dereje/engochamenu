@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
+
+  useEffect(() => {
+    // Clear invalid tokens on mount
+    if (!loading && !token) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('admin');
+    }
+  }, [token, loading]);
 
   if (loading) {
     return (

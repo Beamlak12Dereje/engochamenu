@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
-import { CURRENCY } from '../../data/mockMenu';
-import { X } from 'lucide-react';
+import { CURRENCY } from '../../constants';
+import { X, Flame } from 'lucide-react';
+import { usePricing } from '../../context/PricingContext';
 
 const MenuItemCard = ({ item }) => {
   const [showModal, setShowModal] = useState(false);
+  const { priceType } = usePricing();
+
+  // Determine which price to display based on selected price type
+  const displayPrice = priceType === 'foreigner' 
+    ? (item.price_foreign || item.price_local || item.price) 
+    : (item.price_local || item.price_ethiopian || item.price);
 
   return (
     <>
@@ -15,6 +22,24 @@ const MenuItemCard = ({ item }) => {
           boxShadow: '0 4px 6px -1px rgba(249, 168, 9, 0.3), 0 2px 4px -2px rgba(249, 168, 9, 0.3)' 
         }}
       >
+        {/* Badges - Top of card */}
+        <div className="absolute top-2 left-2 right-2 flex justify-between items-start z-10">
+          {/* Popular Badge - Left */}
+          {item.is_popular && (
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold text-xs backdrop-blur-sm animate-fade-in" style={{ backgroundColor: 'rgba(249, 168, 9, 0.95)' }}>
+              <span className="text-sm">⭐</span>
+              <span className="text-brand-purple">Popular</span>
+            </div>
+          )}
+          
+          {/* Spicy Badge - Right */}
+          {item.is_spicy && (
+            <div className="ml-auto w-7 h-7 rounded-full backdrop-blur-sm flex items-center justify-center animate-fade-in" style={{ backgroundColor: 'rgba(220, 38, 38, 0.95)' }}>
+              <Flame size={14} className="text-white fill-white" />
+            </div>
+          )}
+        </div>
+
         {/* Mobile Layout - Image on top, content below */}
         <div className="lg:hidden">
           {/* Image */}
@@ -32,7 +57,7 @@ const MenuItemCard = ({ item }) => {
           {/* Content */}
           <div className="p-2.5 flex flex-col gap-1 h-[100px]">
             {/* Name */}
-            <h3 className="text-sm font-bold text-brand-blue group-hover:text-brand-purple transition-colors line-clamp-2 leading-tight">
+            <h3 className="text-sm font-bold text-brand-blue group-hover:text-brand-purple transition-colors line-clamp-2 leading-tight capitalize">
               {item.name}
             </h3>
             
@@ -44,7 +69,7 @@ const MenuItemCard = ({ item }) => {
             {/* Price */}
             <div className="mt-auto">
               <span className="text-brand-purple font-bold text-sm">
-                {item.price} {CURRENCY}
+                {displayPrice} {CURRENCY}
               </span>
             </div>
           </div>
@@ -52,6 +77,24 @@ const MenuItemCard = ({ item }) => {
 
         {/* Desktop Layout - Image fills card, text overlay at bottom */}
         <div className="hidden lg:block h-full relative">
+          {/* Badges - Top of card */}
+          <div className="absolute top-2.5 left-2.5 right-2.5 flex justify-between items-start z-10">
+            {/* Popular Badge - Left */}
+            {item.is_popular && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-sm backdrop-blur-sm animate-fade-in" style={{ backgroundColor: 'rgba(249, 168, 9, 0.95)' }}>
+                <span className="text-base">⭐</span>
+                <span className="text-brand-purple">Popular</span>
+              </div>
+            )}
+            
+            {/* Spicy Badge - Right */}
+            {item.is_spicy && (
+              <div className="ml-auto w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center animate-fade-in" style={{ backgroundColor: 'rgba(220, 38, 38, 0.95)' }}>
+                <Flame size={18} className="text-white fill-white" />
+              </div>
+            )}
+          </div>
+
           {/* Full card image */}
           <img 
             src={item.image_url} 
@@ -65,7 +108,7 @@ const MenuItemCard = ({ item }) => {
           {/* Overlay content at bottom with transparent background */}
           <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-4 rounded-b-3xl">
             {/* Name */}
-            <h3 className="text-base font-bold text-white group-hover:text-brand-yellow transition-colors line-clamp-2 leading-tight mb-1.5">
+            <h3 className="text-base font-bold text-white group-hover:text-brand-yellow transition-colors line-clamp-2 leading-tight mb-1.5 capitalize">
               {item.name}
             </h3>
             
@@ -76,7 +119,7 @@ const MenuItemCard = ({ item }) => {
             
             {/* Price */}
             <span className="text-brand-yellow font-bold text-base">
-              {item.price} {CURRENCY}
+              {displayPrice} {CURRENCY}
             </span>
           </div>
         </div>
@@ -113,27 +156,34 @@ const MenuItemCard = ({ item }) => {
             </div>
 
             {/* Content with whitish yellow overlay */}
-            <div className="text-brand-blue p-6 rounded-b-3xl" style={{ backgroundColor: '#FFF9E6' }}>
+            <div className="text-brand-blue p-6 rounded-b-3xl relative" style={{ backgroundColor: '#FFF9E6' }}>
+              {/* Badges - Top corners */}
+              {(item.is_popular || item.is_spicy) && (
+                <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                  {/* Popular Badge - Left */}
+                  {item.is_popular && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-sm" style={{ backgroundColor: 'rgba(249, 168, 9, 0.95)' }}>
+                      <span className="text-base">⭐</span>
+                      <span className="text-brand-purple">Popular</span>
+                    </div>
+                  )}
+                  
+                  {/* Spicy Badge - Right */}
+                  {item.is_spicy && (
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${!item.is_popular ? 'ml-auto' : ''}`} style={{ backgroundColor: 'rgba(220, 38, 38, 0.95)' }}>
+                      <Flame size={18} className="text-white fill-white" />
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Name */}
-              <h2 className="text-2xl md:text-3xl font-bold text-center mb-3">
+              <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 capitalize pt-4">
                 {item.name}
               </h2>
 
-              {/* Description */}
-              <p className="text-brand-blue/80 text-center text-sm mb-4 leading-relaxed">
-                {item.description}
-              </p>
-
-              {/* Price */}
-              <div className="text-center mb-6">
-                <span className="text-brand-purple font-bold text-3xl">
-                  {item.price} {CURRENCY}
-                </span>
-              </div>
-
               {/* Ingredients Section */}
-              <div className="bg-brand-purple/10 rounded-2xl p-4">
-                <h3 className="text-brand-purple font-bold text-lg mb-3">Ingredients</h3>
+              <div className="bg-brand-purple/10 rounded-2xl p-4 mb-6">
                 <div className="flex flex-wrap gap-2">
                   {item.description.split(',').slice(0, 5).map((ingredient, index) => (
                     <span 
@@ -144,6 +194,13 @@ const MenuItemCard = ({ item }) => {
                     </span>
                   ))}
                 </div>
+              </div>
+
+              {/* Price */}
+              <div className="text-left">
+                <span className="text-brand-purple font-bold text-3xl">
+                  {displayPrice} {CURRENCY}
+                </span>
               </div>
             </div>
           </div>

@@ -1,18 +1,17 @@
-// API wrapper for menu data
-// Currently uses mock data - will switch to real API calls later
-
-import { mockCategories, mockMenuItems, getFeaturedItems } from '../data/mockMenu';
-
-// Simulate network delay
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+import { supabase } from '../lib/supabase';
 
 /**
  * Get all categories
  * @returns {Promise<Array>} Array of category objects
  */
 export const getCategories = async () => {
-  await delay(300); // Simulate network delay
-  return mockCategories;
+  const { data, error } = await supabase
+    .from('categories')
+    .select('*')
+    .order('name');
+  
+  if (error) throw error;
+  return data;
 };
 
 /**
@@ -21,13 +20,25 @@ export const getCategories = async () => {
  * @returns {Promise<Array>} Array of menu item objects
  */
 export const getItems = async (categoryId = null) => {
-  await delay(500); // Simulate network delay
+  let query = supabase
+    .from('menu_items')
+    .select('*')
+    .order('name');
   
   if (categoryId) {
-    return mockMenuItems.filter(item => item.category_id === categoryId);
+    query = query.eq('category_id', categoryId);
   }
   
-  return mockMenuItems;
+  const { data, error } = await query;
+  
+  if (error) throw error;
+  
+  // Convert database format to frontend format
+  return data.map(item => ({
+    ...item,
+    price_ethiopian: item.price_local,
+    price_foreigner: item.price_foreign
+  }));
 };
 
 /**
@@ -35,8 +46,39 @@ export const getItems = async (categoryId = null) => {
  * @returns {Promise<Array>} Array of featured menu items
  */
 export const getFeaturedMenuItems = async () => {
-  await delay(300);
-  return getFeaturedItems();
+  // First try to get popular items
+  const { data: popularItems, error: popularError } = await supabase
+    .from('menu_items')
+    .select('*')
+    .eq('is_popular', true)
+    .order('name');
+  
+  if (popularError) throw popularError;
+  
+  // If no popular items, get all items
+  if (!popularItems || popularItems.length === 0) {
+    const { data: allItems, error: allError } = await supabase
+      .from('menu_items')
+      .select('*')
+      .order('name')
+      .limit(20);
+    
+    if (allError) throw allError;
+    
+    return allItems.map(item => ({
+      ...item,
+      price_ethiopian: item.price_local,
+      price_foreigner: item.price_foreign
+    }));
+  }
+  
+  // Convert database format to frontend format
+  return popularItems.map(item => ({
+    ...item,
+    price_ethiopian: item.price_local,
+    price_foreigner: item.price_foreign,
+    is_featured: true
+  }));
 };
 
 /**
@@ -45,53 +87,25 @@ export const getFeaturedMenuItems = async () => {
  * @returns {Promise<Object>} Success response
  */
 export const sendSuggestion = async (suggestion) => {
-  await delay(800); // Simulate network delay
-  
   // Validation
   if (!suggestion.message || suggestion.message.trim() === '') {
     throw new Error('Message is required');
   }
   
-  // Mock success response
-  console.log('Suggestion submitted:', suggestion);
+  const { data, error } = await supabase
+    .from('suggestions')
+    .insert([{
+      name: suggestion.name || null,
+      message: suggestion.message.trim()
+    }])
+    .select()
+    .single();
+  
+  if (error) throw error;
+  
   return {
     success: true,
     message: 'Thank you for your feedback!',
+    data
   };
 };
-
-// When switching to real API, replace the functions above with:
-/*
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-export const getCategories = async () => {
-  const response = await fetch(`${API_BASE_URL}/categories`);
-  if (!response.ok) throw new Error('Failed to fetch categories');
-  return response.json();
-};
-
-export const getItems = async (categoryId = null) => {
-  const url = categoryId 
-    ? `${API_BASE_URL}/items?category=${categoryId}`
-    : `${API_BASE_URL}/items`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to fetch items');
-  return response.json();
-};
-
-export const getFeaturedMenuItems = async () => {
-  const response = await fetch(`${API_BASE_URL}/items?featured=true`);
-  if (!response.ok) throw new Error('Failed to fetch featured items');
-  return response.json();
-};
-
-export const sendSuggestion = async (suggestion) => {
-  const response = await fetch(`${API_BASE_URL}/suggestions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(suggestion),
-  });
-  if (!response.ok) throw new Error('Failed to send suggestion');
-  return response.json();
-};
-*/

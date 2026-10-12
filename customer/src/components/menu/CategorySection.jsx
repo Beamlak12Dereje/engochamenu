@@ -22,7 +22,7 @@ const CategorySection = ({ categoryName, items }) => {
     <div className="mb-16" id={`category-${categoryName}`}>
       {/* Category Title - centered */}
       <div className="mb-8 text-center">
-        <h3 className="text-3xl md:text-4xl font-bold text-white py-2">
+        <h3 className="text-3xl md:text-4xl font-bold text-white py-2 capitalize">
           {categoryName}
         </h3>
       </div>
