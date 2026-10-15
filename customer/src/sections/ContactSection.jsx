@@ -160,7 +160,7 @@ const ContactSection = () => {
         {/* Footer Section */}
         <div className="mt-16 pt-12 border-t border-white/20">
           {/* Restaurant Name */}
-          <h2 className="text-white font-extrabold text-3xl text-center mb-3" style={{ fontFamily: 'Comic Sans MS, cursive' }}>
+          <h2 className="text-white font-extrabold text-3xl text-center mb-3">
             ENGOCHA
           </h2>
           <p className="text-white/80 text-center mb-8">

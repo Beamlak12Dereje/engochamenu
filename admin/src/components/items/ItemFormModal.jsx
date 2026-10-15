@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
+import { uploadItemImage } from '../../api/itemApi';
 
 const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,9 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
     is_popular: false,
     is_spicy: false,
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -22,10 +26,11 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
         price_ethiopian: item.price_ethiopian || item.price_local || '',
         price_foreigner: item.price_foreigner || item.price_foreign || '',
         category_id: item.category_id,
-        image_url: item.image_url,
+        image_url: item.image_url || '',
         is_popular: item.is_popular,
         is_spicy: item.is_spicy,
       });
+      setPreviewUrl(item.image_url || '');
     } else {
       setFormData({
         name: '',
@@ -37,7 +42,10 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
         is_popular: false,
         is_spicy: false,
       });
+      setPreviewUrl('');
     }
+    setImageFile(null);
+    setIsUploading(false);
     setErrors({});
   }, [item, isOpen, categories]);
 
@@ -72,11 +80,23 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
     }
 
     try {
+      setIsUploading(true);
+      let finalImageUrl = formData.image_url;
+
+      // If user selected a new file, upload to Supabase Storage bucket
+      if (imageFile) {
+        finalImageUrl = await uploadItemImage(imageFile);
+      } else if (!previewUrl) {
+        // Image was cleared by user
+        finalImageUrl = null;
+      }
+
       const result = await onSubmit({
         ...formData,
         price_ethiopian: Number(formData.price_ethiopian),
         price_foreigner: Number(formData.price_foreigner),
         category_id: Number(formData.category_id),
+        image_url: finalImageUrl,
       });
       
       if (result.success) {
@@ -86,6 +106,12 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
       }
     } catch (error) {
       console.error('Form error:', error);
+      setErrors(prev => ({
+        ...prev,
+        submit: error.message || 'Failed to upload image. Please verify the "menu-images" storage bucket exists and is public in Supabase.'
+      }));
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -95,6 +121,23 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
     }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      if (errors.image) {
+        setErrors(prev => ({ ...prev, image: '' }));
+      }
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setPreviewUrl('');
+    setFormData(prev => ({ ...prev, image_url: '' }));
   };
 
   return (
@@ -206,35 +249,31 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  // Create preview URL
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    handleChange('image_url', reader.result);
-                  };
-                  reader.readAsDataURL(file);
-                }
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A809] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-white file:text-[#212E50] file:font-semibold hover:file:bg-gray-100"
+              disabled={isUploading}
+              onChange={handleFileChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F9A809] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-white file:text-[#212E50] file:font-semibold hover:file:bg-gray-100 disabled:opacity-50"
             />
+            {errors.image && (
+              <p className="text-red-500 text-sm">{errors.image}</p>
+            )}
             
             {/* Image Preview */}
-            {formData.image_url && (
+            {previewUrl && (
               <div className="relative">
                 <img
-                  src={formData.image_url}
+                  src={previewUrl}
                   alt="Preview"
-                  className="w-full h-48 object-cover rounded-lg"
+                  className="w-full h-48 object-cover rounded-lg border border-gray-200"
                   onError={(e) => {
                     e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23ddd" width="200" height="200"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
                   }}
                 />
                 <button
                   type="button"
-                  onClick={() => handleChange('image_url', '')}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600"
+                  disabled={isUploading}
+                  onClick={handleRemoveImage}
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md disabled:opacity-50"
+                  title="Remove image"
                 >
                   ×
                 </button>
@@ -247,6 +286,7 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
         <div className="flex gap-2 mb-6 justify-center">
           <button
             type="button"
+            disabled={isUploading}
             onClick={() => handleChange('is_popular', !formData.is_popular)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border-2 transition-colors font-semibold text-xs ${
               formData.is_popular
@@ -260,6 +300,7 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
 
           <button
             type="button"
+            disabled={isUploading}
             onClick={() => handleChange('is_spicy', !formData.is_spicy)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border-2 transition-colors font-semibold text-xs ${
               formData.is_spicy
@@ -272,20 +313,36 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
           </button>
         </div>
 
+        {/* Submit Error Message */}
+        {errors.submit && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            {errors.submit}
+          </div>
+        )}
+
         {/* Buttons */}
         <div className="flex gap-3 justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
+            disabled={isUploading}
+            className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-white text-[#212E50] rounded-lg hover:bg-gray-100 transition-colors font-semibold"
+            disabled={isUploading}
+            className="px-4 py-2 bg-white text-[#212E50] rounded-lg hover:bg-gray-100 transition-colors font-semibold disabled:opacity-50 flex items-center gap-2"
           >
-            {item ? 'Update' : 'Add'} Item
+            {isUploading ? (
+              <>
+                <span className="inline-block animate-spin">⏳</span>
+                <span>{imageFile ? 'Uploading Image...' : 'Saving...'}</span>
+              </>
+            ) : (
+              `${item ? 'Update' : 'Add'} Item`
+            )}
           </button>
         </div>
       </form>

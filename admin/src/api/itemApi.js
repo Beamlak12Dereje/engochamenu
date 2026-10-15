@@ -1,4 +1,60 @@
 import { supabase } from '../lib/supabase';
+import { STORAGE_BUCKET } from '../constants';
+
+/**
+ * Upload an image file to Supabase Storage bucket
+ * @param {File} file - File from input[type=file]
+ * @returns {Promise<string>} Public URL of the uploaded image
+ */
+export const uploadItemImage = async (file) => {
+  if (!file) throw new Error('No file provided');
+
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const cleanName = file.name
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-zA-Z0-9]/g, '_')
+    .substring(0, 20);
+  const fileName = `${Date.now()}_${cleanName}.${fileExt}`;
+  const filePath = `items/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: file.type || 'image/jpeg'
+    });
+
+  if (uploadError) {
+    console.error('Supabase storage upload error:', uploadError);
+    throw uploadError;
+  }
+
+  const { data } = supabase.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+};
+
+/**
+ * Delete an image from Supabase Storage by its public URL
+ * @param {string} imageUrl
+ */
+export const deleteItemImage = async (imageUrl) => {
+  if (!imageUrl || typeof imageUrl !== 'string') return;
+  const bucketMarker = `/${STORAGE_BUCKET}/`;
+  if (!imageUrl.includes(bucketMarker)) return;
+
+  try {
+    const filePath = imageUrl.split(bucketMarker)[1];
+    if (filePath) {
+      await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
+    }
+  } catch (err) {
+    console.warn('Could not remove old image from storage:', err);
+  }
+};
 
 export const getItems = async () => {
   const { data, error } = await supabase
@@ -77,7 +133,11 @@ export const updateItem = async (id, itemData) => {
   };
 };
 
-export const deleteItem = async (id) => {
+export const deleteItem = async (id, imageUrl = null) => {
+  if (imageUrl) {
+    await deleteItemImage(imageUrl);
+  }
+
   const { error } = await supabase
     .from('menu_items')
     .delete()

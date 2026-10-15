@@ -36,12 +36,13 @@ export const useItems = () => {
 
   const removeItem = async (id) => {
     try {
-      await itemApi.deleteItem(id);
+      const itemToDelete = cachedItems.find(item => item.id === id);
+      await itemApi.deleteItem(id, itemToDelete?.image_url);
       setCachedItems(cachedItems.filter(item => item.id !== id));
       showToast('Item deleted successfully', 'success');
       return { success: true };
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to delete item', 'error');
+      showToast(err.response?.data?.message || err.message || 'Failed to delete item', 'error');
       return { success: false };
     }
   };
