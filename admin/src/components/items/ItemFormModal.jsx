@@ -19,16 +19,18 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (item) {
       setFormData({
-        name: item.name,
-        description: item.description,
+        name: item.name || '',
+        description: item.description || '',
         price_ethiopian: item.price_ethiopian || item.price_local || '',
         price_foreigner: item.price_foreigner || item.price_foreign || '',
-        category_id: item.category_id,
+        category_id: item.category_id || categories[0]?.id || '',
         image_url: item.image_url || '',
-        is_popular: item.is_popular,
-        is_spicy: item.is_spicy,
+        is_popular: Boolean(item.is_popular),
+        is_spicy: Boolean(item.is_spicy),
       });
       setPreviewUrl(item.image_url || '');
     } else {
@@ -47,7 +49,19 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
     setImageFile(null);
     setIsUploading(false);
     setErrors({});
-  }, [item, isOpen, categories]);
+  }, [item, isOpen]);
+
+  // If categories load after modal opened, fill default category without resetting other fields
+  useEffect(() => {
+    if (isOpen && !item && categories.length > 0) {
+      setFormData(prev => {
+        if (!prev.category_id) {
+          return { ...prev, category_id: categories[0].id };
+        }
+        return prev;
+      });
+    }
+  }, [isOpen, item, categories.length]);
 
   const validate = () => {
     const newErrors = {};
@@ -116,10 +130,10 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
   };
 
   const handleChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+    setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors({ ...errors, [field]: '' });
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -145,6 +159,7 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
       isOpen={isOpen}
       onClose={onClose}
       title={item ? 'Edit Item' : 'Add Item'}
+      closeOnBackdrop={false}
     >
       <form onSubmit={handleSubmit}>
         {/* Name */}
