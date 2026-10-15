@@ -75,11 +75,25 @@ export const getItems = async () => {
 };
 
 export const createItem = async (itemData) => {
+  const cleanName = itemData.name.trim();
+
+  // Check for duplicate item name (case-insensitive)
+  const { data: existing, error: checkError } = await supabase
+    .from('menu_items')
+    .select('id')
+    .ilike('name', cleanName)
+    .limit(1);
+
+  if (checkError) console.warn('Duplicate check warning:', checkError);
+  if (existing && existing.length > 0) {
+    throw new Error('An item with this name already exists');
+  }
+
   const { data, error } = await supabase
     .from('menu_items')
     .insert([{
       category_id: itemData.category_id,
-      name: itemData.name,
+      name: cleanName,
       description: itemData.description || '',
       price_local: itemData.price_ethiopian,
       price_foreign: itemData.price_foreigner,
@@ -103,9 +117,25 @@ export const createItem = async (itemData) => {
 };
 
 export const updateItem = async (id, itemData) => {
+  if (itemData.name) {
+    const cleanName = itemData.name.trim();
+    // Check for duplicate item name excluding current item
+    const { data: existing, error: checkError } = await supabase
+      .from('menu_items')
+      .select('id')
+      .ilike('name', cleanName)
+      .neq('id', id)
+      .limit(1);
+
+    if (checkError) console.warn('Duplicate check warning:', checkError);
+    if (existing && existing.length > 0) {
+      throw new Error('An item with this name already exists');
+    }
+  }
+
   const updateData = {
     ...(itemData.category_id !== undefined && { category_id: itemData.category_id }),
-    ...(itemData.name !== undefined && { name: itemData.name }),
+    ...(itemData.name !== undefined && { name: itemData.name.trim() }),
     ...(itemData.description !== undefined && { description: itemData.description }),
     ...(itemData.price_ethiopian !== undefined && { price_local: itemData.price_ethiopian }),
     ...(itemData.price_foreigner !== undefined && { price_foreign: itemData.price_foreigner }),

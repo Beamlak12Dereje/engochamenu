@@ -93,7 +93,6 @@ const CategoriesPage = () => {
           categories={filteredCategories}
           items={items}
           onEdit={handleEdit}
-          onDelete={removeCategory}
         />
       )}
 
@@ -103,6 +102,9 @@ const CategoriesPage = () => {
         onClose={handleCloseModal}
         onSubmit={handleSubmit}
         category={editingCategory}
+        categories={categories}
+        items={items}
+        onDelete={removeCategory}
       />
     </div>
   );

@@ -132,7 +132,7 @@ const MenuItemCard = ({ item }) => {
           onClick={() => setShowModal(false)}
         >
           <div 
-            className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden relative"
+            className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto relative scrollbar-hide"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
@@ -182,19 +182,31 @@ const MenuItemCard = ({ item }) => {
                 {item.name}
               </h2>
 
-              {/* Ingredients Section */}
-              <div className="bg-brand-purple/10 rounded-2xl p-4 mb-6">
-                <div className="flex flex-wrap gap-2">
-                  {item.description.split(',').slice(0, 5).map((ingredient, index) => (
-                    <span 
-                      key={index}
-                      className="bg-brand-purple/20 px-3 py-1.5 rounded-full text-sm text-brand-purple"
-                    >
-                      {ingredient.trim()}
-                    </span>
-                  ))}
+              {/* Ingredients / Description Section - Show Full Text */}
+              {item.description && (
+                <div className="bg-brand-purple/10 rounded-2xl p-4 mb-6">
+                  {item.description.includes(',') ? (
+                    <div className="flex flex-wrap gap-2">
+                      {item.description
+                        .split(',')
+                        .map((ing) => ing.trim())
+                        .filter(Boolean)
+                        .map((ingredient, index) => (
+                          <span 
+                            key={index}
+                            className="bg-brand-purple/20 px-3 py-1.5 rounded-full text-sm font-medium text-brand-purple"
+                          >
+                            {ingredient}
+                          </span>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="text-brand-purple text-sm md:text-base leading-relaxed">
+                      {item.description}
+                    </p>
+                  )}
                 </div>
-              </div>
+              )}
 
               {/* Price */}
               <div className="text-left">

@@ -99,7 +99,6 @@ const ItemsPage = () => {
           items={filteredItems}
           categories={categories}
           onEdit={handleEdit}
-          onDelete={removeItem}
           onTogglePopular={handleTogglePopular}
           onToggleSpicy={handleToggleSpicy}
         />
@@ -112,6 +111,8 @@ const ItemsPage = () => {
         onSubmit={handleSubmit}
         item={editingItem}
         categories={categories}
+        items={items}
+        onDelete={removeItem}
       />
     </div>
   );

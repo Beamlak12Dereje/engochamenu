@@ -11,9 +11,23 @@ export const getCategories = async () => {
 };
 
 export const createCategory = async (categoryData) => {
+  const cleanName = categoryData.name.trim();
+
+  // Check for duplicate category name (case-insensitive)
+  const { data: existing, error: checkError } = await supabase
+    .from('categories')
+    .select('id')
+    .ilike('name', cleanName)
+    .limit(1);
+
+  if (checkError) console.warn('Duplicate category check warning:', checkError);
+  if (existing && existing.length > 0) {
+    throw new Error('A category with this name already exists');
+  }
+
   const { data, error } = await supabase
     .from('categories')
-    .insert([{ name: categoryData.name }])
+    .insert([{ name: cleanName }])
     .select()
     .single();
   
@@ -22,9 +36,24 @@ export const createCategory = async (categoryData) => {
 };
 
 export const updateCategory = async (id, categoryData) => {
+  const cleanName = categoryData.name.trim();
+
+  // Check for duplicate category name excluding current
+  const { data: existing, error: checkError } = await supabase
+    .from('categories')
+    .select('id')
+    .ilike('name', cleanName)
+    .neq('id', id)
+    .limit(1);
+
+  if (checkError) console.warn('Duplicate category check warning:', checkError);
+  if (existing && existing.length > 0) {
+    throw new Error('A category with this name already exists');
+  }
+
   const { data, error } = await supabase
     .from('categories')
-    .update({ name: categoryData.name })
+    .update({ name: cleanName })
     .eq('id', id)
     .select()
     .single();

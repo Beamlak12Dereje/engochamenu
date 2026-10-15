@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
+import ConfirmDialog from '../common/ConfirmDialog';
 import { uploadItemImage } from '../../api/itemApi';
 
-const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
+const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories, items = [], onDelete }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -16,6 +17,8 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -65,9 +68,19 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
 
   const validate = () => {
     const newErrors = {};
+    const trimmedName = formData.name.trim();
 
-    if (!formData.name.trim()) {
+    if (!trimmedName) {
       newErrors.name = 'Name is required';
+    } else {
+      const isDuplicate = items.some(existingItem => {
+        if (item && existingItem.id === item.id) return false;
+        return existingItem.name?.trim().toLowerCase() === trimmedName.toLowerCase();
+      });
+
+      if (isDuplicate) {
+        newErrors.name = 'An item with this name already exists';
+      }
     }
 
     if (!formData.price_ethiopian || formData.price_ethiopian <= 0) {
@@ -126,6 +139,26 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
       }));
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!item || !onDelete) return;
+    try {
+      setIsDeleting(true);
+      const result = await onDelete(item.id);
+      if (result?.success !== false) {
+        setShowDeleteConfirm(false);
+        onClose();
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      setErrors(prev => ({
+        ...prev,
+        submit: err.message || 'Failed to delete item.'
+      }));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -335,20 +368,13 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
           </div>
         )}
 
-        {/* Buttons */}
-        <div className="flex gap-3 justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isUploading}
-            className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold disabled:opacity-50"
-          >
-            Cancel
-          </button>
+        {/* Buttons in order: Edit/Update, Cancel, Delete */}
+        <div className="flex flex-wrap gap-3 justify-end items-center">
+          {/* 1. Edit / Update Item (or Add Item) */}
           <button
             type="submit"
-            disabled={isUploading}
-            className="px-4 py-2 bg-white text-[#212E50] rounded-lg hover:bg-gray-100 transition-colors font-semibold disabled:opacity-50 flex items-center gap-2"
+            disabled={isUploading || isDeleting}
+            className="px-4 py-2 bg-white text-[#212E50] rounded-lg hover:bg-gray-100 transition-colors font-semibold disabled:opacity-50 flex items-center gap-2 shadow-sm"
           >
             {isUploading ? (
               <>
@@ -359,8 +385,39 @@ const ItemFormModal = ({ isOpen, onClose, onSubmit, item, categories }) => {
               `${item ? 'Update' : 'Add'} Item`
             )}
           </button>
+
+          {/* 2. Cancel Button */}
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isUploading || isDeleting}
+            className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold disabled:opacity-50 shadow-sm"
+          >
+            Cancel
+          </button>
+
+          {/* 3. Delete Button (shown when editing item) */}
+          {item && onDelete && (
+            <button
+              type="button"
+              disabled={isUploading || isDeleting}
+              onClick={() => setShowDeleteConfirm(true)}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-semibold disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </button>
+          )}
         </div>
       </form>
+
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title="Delete Item"
+        message={`Are you sure you want to delete "${item?.name}"? This action cannot be undone.`}
+      />
     </Modal>
   );
 };
