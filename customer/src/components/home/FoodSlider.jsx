@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Pause, Play } from 'lucide-react';
 
 const FoodSlider = ({ items = [] }) => {
@@ -23,7 +23,7 @@ const FoodSlider = ({ items = [] }) => {
                 {/* Food card */}
                 <div className="group relative flex flex-col items-center">
                   {/* Smaller circle: 2 items mobile, 8 items wide screen */}
-                  <div className="w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden border-4 border-white shadow-lg group-hover:border-brand-yellow transition-all duration-300 bg-white">
+                  <div className="w-28 h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden border-4 border-white shadow-lg group-hover:border-brand-yellow transition-all duration-300 bg-white">
                     <img 
                       src={item.image_url} 
                       alt={item.name}
@@ -34,7 +34,7 @@ const FoodSlider = ({ items = [] }) => {
                     />
                   </div>
                   {/* Item name badge */}
-                  <div className="mt-2 bg-white text-brand-blue px-3 py-1 rounded-full text-xs md:text-sm font-bold shadow-lg border border-brand-blue/10 whitespace-nowrap">
+                  <div className="mt-1 bg-white text-brand-blue px-3 py-1 rounded-xl text-xs md:text-sm font-bold shadow-lg border border-brand-blue/10 text-center max-w-[7rem] md:max-w-[8rem] leading-tight">
                     {item.name}
                   </div>
                 </div>

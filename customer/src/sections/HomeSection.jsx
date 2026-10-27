@@ -1,9 +1,8 @@
-import React from 'react';
 import Hero from '../components/home/Hero';
 import SearchBar from '../components/home/SearchBar';
 import FoodSlider from '../components/home/FoodSlider';
 
-const HomeSection = ({ searchText, onSearch, featuredItems, loading }) => {
+const HomeSection = ({ onSearch, featuredItems, loading }) => {
   return (
     <section id="home" className="relative min-h-screen flex flex-col items-center justify-center py-12">
       {/* Background overlay */}

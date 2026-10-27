@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getCategories, getItems, getFeaturedMenuItems } from '../api/menuApi';
 
 /**
@@ -71,10 +71,10 @@ export const useMenu = () => {
   }, []);
 
   // Helper function to get category name by ID
-  const getCategoryName = (categoryId) => {
+  const getCategoryName = useCallback((categoryId) => {
     const category = categories.find(cat => cat.id === categoryId);
     return category ? category.name : 'Unknown';
-  };
+  }, [categories]);
 
   // Filter and search items
   const filteredItems = useMemo(() => {
@@ -113,7 +113,7 @@ export const useMenu = () => {
     });
     
     return Object.values(grouped);
-  }, [filteredItems, categories]);
+  }, [filteredItems, getCategoryName]);
 
   // Handle search - sets search text and scrolls to menu
   const handleSearch = (text) => {

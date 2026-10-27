@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MapPin, Clock, Phone, MessageSquare, Send } from 'lucide-react';
 import { sendSuggestion } from '../api/menuApi';
 

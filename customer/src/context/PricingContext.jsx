@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from 'react';
 
 const PricingContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const usePricing = () => {
   const context = useContext(PricingContext);
   if (!context) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CURRENCY } from '../../constants';
 import { X, Flame } from 'lucide-react';
 import { usePricing } from '../../context/PricingContext';

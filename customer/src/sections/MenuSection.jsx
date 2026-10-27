@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import FilterDropdown from '../components/menu/FilterDropdown';
+import { useState } from 'react';
 import CategorySection from '../components/menu/CategorySection';
 import Loader from '../components/common/Loader';
 import { Filter, X } from 'lucide-react';
@@ -7,8 +6,6 @@ import { Filter, X } from 'lucide-react';
 const MenuSection = ({ 
   categories, 
   itemsByCategory, 
-  selectedCategoryId, 
-  onCategoryChange,
   loading,
   error,
   searchText 

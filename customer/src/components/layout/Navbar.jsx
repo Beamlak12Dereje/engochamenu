@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Menu, X, Send, Phone } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 

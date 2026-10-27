@@ -1,4 +1,3 @@
-import React from 'react';
 import MenuItemCard from './MenuItemCard';
 
 const CategorySection = ({ categoryName, items }) => {
@@ -6,17 +5,6 @@ const CategorySection = ({ categoryName, items }) => {
     return null;
   }
 
-  // Map category names to emojis
-  const categoryEmojis = {
-    'Breakfast': '🍳',
-    'Lunch': '🍱',
-    'Dinner': '🍽️',
-    'Drinks': '🥤',
-    'Desserts': '🍰',
-    'Appetizers': '🥗'
-  };
-
-  const emoji = categoryEmojis[categoryName] || '🍴';
 
   return (
     <div className="mb-16" id={`category-${categoryName}`}>

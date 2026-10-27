@@ -43,41 +43,21 @@ export const getItems = async (categoryId = null) => {
 
 /**
  * Get featured items for the home slider
- * @returns {Promise<Array>} Array of featured menu items
+ * Returns all menu items so every item appears in the slideshow
+ * @returns {Promise<Array>} Array of all menu items
  */
 export const getFeaturedMenuItems = async () => {
-  // First try to get popular items
-  const { data: popularItems, error: popularError } = await supabase
+  const { data, error } = await supabase
     .from('menu_items')
     .select('*')
-    .eq('is_popular', true)
     .order('name');
   
-  if (popularError) throw popularError;
+  if (error) throw error;
   
-  // If no popular items, get all items
-  if (!popularItems || popularItems.length === 0) {
-    const { data: allItems, error: allError } = await supabase
-      .from('menu_items')
-      .select('*')
-      .order('name')
-      .limit(20);
-    
-    if (allError) throw allError;
-    
-    return allItems.map(item => ({
-      ...item,
-      price_ethiopian: item.price_local,
-      price_foreigner: item.price_foreign
-    }));
-  }
-  
-  // Convert database format to frontend format
-  return popularItems.map(item => ({
+  return data.map(item => ({
     ...item,
     price_ethiopian: item.price_local,
-    price_foreigner: item.price_foreign,
-    is_featured: true
+    price_foreigner: item.price_foreign
   }));
 };
 

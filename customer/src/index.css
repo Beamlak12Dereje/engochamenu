@@ -68,7 +68,7 @@
   .food-slider-track {
     display: flex;
     width: fit-content;
-    animation: scroll 30s linear infinite;
+    animation: scroll 120s linear infinite;
   }
 
   .food-slider-track.paused {
